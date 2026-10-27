@@ -68,7 +68,12 @@ async function initGame() {
     document.getElementById('btn-bank').onclick = bankAndStop;
     document.getElementById('btn-restart').onclick = () => location.reload();
     document.getElementById('btn-backup').onclick = toggleSet;
-    document.getElementById('btn-stop-poll').onclick = stopPoll;
+
+    // Stop Poll button logic (if the element exists)
+    const stopPollBtn = document.getElementById('btn-stop-poll');
+    if (stopPollBtn) {
+        stopPollBtn.onclick = stopPoll;
+    }
 
     elements.answerBtns.forEach(btn => {
         btn.onclick = () => selectAnswer(btn);
@@ -142,9 +147,7 @@ function startTimer(seconds) {
 }
 
 function selectAnswer(btn) {
-    // Only block selection if the answer is truly locked (already revealed or timer finished)
     if (gameState.isAnswerLocked) return;
-
     elements.answerBtns.forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
 }
@@ -243,14 +246,20 @@ function applyLifeline(type) {
 }
 
 function startAudiencePoll() {
-    elements.audienceOverlay.classList.remove('hidden');
+    if (elements.audienceOverlay) {
+        elements.audienceOverlay.classList.remove('hidden');
+    }
     let pollTime = 120;
-    elements.audienceTimer.innerText = "02:00";
+    if (elements.audienceTimer) {
+        elements.audienceTimer.innerText = "02:00";
+    }
     gameState.pollInterval = setInterval(() => {
         pollTime--;
         const mins = Math.floor(pollTime / 60);
         const secs = pollTime % 60;
-        elements.audienceTimer.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        if (elements.audienceTimer) {
+            elements.audienceTimer.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
         if (pollTime <= 0) {
             stopPoll();
         }
@@ -259,24 +268,33 @@ function startAudiencePoll() {
 
 function stopPoll() {
     clearInterval(gameState.pollInterval);
-    elements.audienceOverlay.classList.add('hidden');
+    if (elements.audienceOverlay) {
+        elements.audienceOverlay.classList.add('hidden');
+    }
     startFinalLockIn();
 }
 
 function startFinalLockIn() {
-    // FORCE unlock so the team can choose their answer while the 10s timer runs
-    gameState.isAnswerLocked = false;
-
-    elements.lockInOverlay.classList.remove('hidden');
+    if (elements.lockInOverlay) {
+        elements.lockInOverlay.classList.remove('hidden');
+    }
     let lockTime = 10;
-    elements.lockInTimer.innerText = lockTime;
+    if (elements.lockInTimer) {
+        elements.lockInTimer.innerText = lockTime;
+    }
+
+    gameState.isAnswerLocked = false;
 
     gameState.lockInInterval = setInterval(() => {
         lockTime--;
-        elements.lockInTimer.innerText = lockTime;
+        if (elements.lockInTimer) {
+            elements.lockInTimer.innerText = lockTime;
+        }
         if (lockTime <= 0) {
             clearInterval(gameState.lockInInterval);
-            elements.lockInOverlay.classList.add('hidden');
+            if (elements.lockInOverlay) {
+                elements.lockInOverlay.classList.add('hidden');
+            }
             lockAnswer();
         }
     }, 1000);

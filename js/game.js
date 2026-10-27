@@ -75,7 +75,7 @@ async function initGame() {
     });
 
     document.getElementById('ll-5050').onclick = () => applyLifeline('50:50');
-    // Audience lifeline is now removed as requested
+    document.getElementById('ll-audience').onclick = () => applyLifeline('Audience');
 }
 
 function startQuiz() {
@@ -208,27 +208,54 @@ function toggleSet() {
 }
 
 function applyLifeline(type) {
-    if (type !== '50:50') return; // Remove Audience lifeline logic
+    if (type === 'Audience') {
+        // 1. Pause the timer
+        clearInterval(gameState.timerInterval);
 
-    if (gameState.lifelinesUsed >= 1) {
-        alert("Lifeline already used!");
+        // 2. Create and show the Unpause button
+        const unpauseBtn = document.createElement('button');
+        unpauseBtn.id = 'btn-unpause-timer';
+        unpauseBtn.innerText = 'UNPAUSE TIMER';
+        unpauseBtn.className = 'cinematic-btn'; // Use existing cinematic style
+        unpauseBtn.style.fontSize = '1rem';
+        unpauseBtn.style.padding = '0.5rem 1rem';
+
+        unpauseBtn.onclick = () => {
+            unpauseBtn.remove();
+            startTimer(gameState.timeLeft); // Resume from current timeLeft
+        };
+
+        const container = document.querySelector('.timer-container');
+        container.appendChild(unpauseBtn);
+
+        if (!gameState.performance[gameState.currentQuestionIdx]) {
+            gameState.performance[gameState.currentQuestionIdx] = { qNum: gameState.currentQuestionIdx + 1 };
+        }
+        gameState.performance[gameState.currentQuestionIdx].lifeline = type;
         return;
     }
-    gameState.lifelinesUsed++;
-    if (!gameState.performance[gameState.currentQuestionIdx]) {
-        gameState.performance[gameState.currentQuestionIdx] = { qNum: gameState.currentQuestionIdx + 1 };
-    }
-    gameState.performance[gameState.currentQuestionIdx].lifeline = type;
 
-    const q = gameState.activeQuestions[gameState.currentQuestionIdx];
-    const correct = q.correct;
-    let removed = 0;
-    elements.answerBtns.forEach(btn => {
-        if (btn.dataset.option !== correct && removed < 2) {
-            btn.style.visibility = 'hidden';
-            removed++;
+    if (type === '50:50') {
+        if (gameState.lifelinesUsed >= 1) {
+            alert("Lifeline already used!");
+            return;
         }
-    });
+        gameState.lifelinesUsed++;
+        if (!gameState.performance[gameState.currentQuestionIdx]) {
+            gameState.performance[gameState.currentQuestionIdx] = { qNum: gameState.currentQuestionIdx + 1 };
+        }
+        gameState.performance[gameState.currentQuestionIdx].lifeline = type;
+
+        const q = gameState.activeQuestions[gameState.currentQuestionIdx];
+        const correct = q.correct;
+        let removed = 0;
+        elements.answerBtns.forEach(btn => {
+            if (btn.dataset.option !== correct && removed < 2) {
+                btn.style.visibility = 'hidden';
+                removed++;
+            }
+        });
+    }
 }
 
 function bankAndStop() {

@@ -162,23 +162,26 @@ body {
     font-weight: bold;
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent-gold);
-    text-shadow: 0, 0, 10px var(--accent-gold);
+    text-shadow: 0 0 10px var(--accent-gold);
 }
 
 #btn-unpause-timer {
-    background: var(--accent-gold);
-    color: black;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    display: none; /* Hidden by default */
+    background: var(--accent-gold) !important;
+    color: black !important;
+    border: none !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 5px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    display: block !important;
     transition: 0.3s;
+    font-family: inherit;
+    z-index: 10001 !important;
+    position: relative !important;
 }
 
 #btn-unpause-timer:hover {
-    background: white;
+    background: white !important;
     box-shadow: 0 0 10px var(--accent-gold);
 }
 
@@ -391,19 +394,23 @@ body {
     z-index: -1;
 }
 
-/* Special case: Final Lock-In overlay allows clicks to pass through to the quiz buttons */
+/* The key fix: the overlay itself must allow clicks to the buttons inside it */
+.overlay {
+    pointer-events: auto;
+}
+
+/* For Lock-In: Allow clicks to pass THROUGH the overlay to the quiz buttons */
 #lock-in-overlay {
     background: rgba(0,0,0,0.4);
     backdrop-filter: blur(2px);
     pointer-events: none;
 }
 
-/* Re-enable clicks for any interactive content inside any overlay */
+/* Re-enable clicks for the buttons/cards inside any overlay */
 .audience-card, .lock-in-card, .setup-card, .overlay button, .cinematic-btn {
     pointer-events: auto !important;
     cursor: pointer !important;
-    position: relative;
-    z-index: 10000 !important;
+    z-index: 10001 !important;
 }
 
 .audience-card, .lock-in-card {

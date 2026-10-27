@@ -9,7 +9,10 @@ let gameState = {
     isAnswerLocked: false,
     timerInterval: null,
     timeLeft: 0,
-    lifelinesUsed: 0,
+    lifelinesUsed: {
+        '50:50': false,
+        'Audience': false
+    },
     setA: [],
     setB: [],
     activeQuestions: [],
@@ -208,21 +211,31 @@ function toggleSet() {
 }
 
 function applyLifeline(type) {
+    // 1. Strict one-time use per team check
+    if (gameState.lifelinesUsed[type]) {
+        alert(`The ${type} lifeline has already been used by this team!`);
+        return;
+    }
+
     if (type === 'Audience') {
-        // 1. Pause the timer
+        // Mark as used
+        gameState.lifelinesUsed['Audience'] = true;
+
+        // Pause the timer
         clearInterval(gameState.timerInterval);
 
-        // 2. Create and show the Unpause button
+        // Create and show the Unpause button
         const unpauseBtn = document.createElement('button');
         unpauseBtn.id = 'btn-unpause-timer';
         unpauseBtn.innerText = 'UNPAUSE TIMER';
-        unpauseBtn.className = 'cinematic-btn'; // Use existing cinematic style
+        unpauseBtn.className = 'cinematic-btn';
         unpauseBtn.style.fontSize = '1rem';
         unpauseBtn.style.padding = '0.5rem 1rem';
+        unpauseBtn.style.marginLeft = '1rem';
 
         unpauseBtn.onclick = () => {
             unpauseBtn.remove();
-            startTimer(gameState.timeLeft); // Resume from current timeLeft
+            startTimer(gameState.timeLeft);
         };
 
         const container = document.querySelector('.timer-container');
@@ -236,11 +249,9 @@ function applyLifeline(type) {
     }
 
     if (type === '50:50') {
-        if (gameState.lifelinesUsed >= 1) {
-            alert("Lifeline already used!");
-            return;
-        }
-        gameState.lifelinesUsed++;
+        // Mark as used
+        gameState.lifelinesUsed['50:50'] = true;
+
         if (!gameState.performance[gameState.currentQuestionIdx]) {
             gameState.performance[gameState.currentQuestionIdx] = { qNum: gameState.currentQuestionIdx + 1 };
         }

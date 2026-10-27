@@ -358,7 +358,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 9999; /* Massive z-index */
     transition: opacity 0.5s ease;
     pointer-events: auto; /* Block clicks by default */
 }
@@ -366,6 +366,7 @@ body {
 .overlay.hidden {
     opacity: 0;
     pointer-events: none;
+    z-index: -1;
 }
 
 /* Special case: Final Lock-In overlay allows clicks to reach the buttons below it */
@@ -380,7 +381,7 @@ body {
     pointer-events: auto !important;
     cursor: pointer !important;
     position: relative;
-    z-index: 1001;
+    z-index: 10000 !important;
 }
 
 .audience-card, .lock-in-card {
@@ -420,7 +421,7 @@ body {
     margin: 0;
     font-size: 5rem;
     text-shadow: 0 0 20px var(--accent-gold);
-    z-index: 1001;
+    z-index: 10001 !important;
 }
 
 .performance-summary {

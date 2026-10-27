@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATHFEST Quiz | The Ultimate Challenge</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Three.js for the Cinematic Space Background and 3D Assets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+</head>
+<body>
+    <!-- Three.js Canvas Background -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="vignette"></div>
+
+    <main id="app">
+        <!-- Screen 1: Welcome / Team Setup -->
+        <section id="screen-welcome" class="screen active">
+            <div class="logo-container">
+                <!-- Logo will be rendered as a 3D object by Three.js in this area -->
+                <div id="three-logo-anchor"></div>
+                <h1 class="event-title">MATHFEST</h1>
+            </div>
+            <div class="setup-card">
+                <h2>Enter Team Name</h2>
+                <input type="text" id="team-name-input" placeholder="e.g. Euler's Elite">
+                <button id="btn-start-quiz" class="cinematic-btn">ENTER THE VOID</button>
+            </div>
+        </section>
+
+        <!-- Screen 2: Live Quiz -->
+        <section id="screen-quiz" class="screen">
+            <header class="quiz-header">
+                <div class="team-info">
+                    <span id="display-team-name">TEAM NAME</span>
+                    <span id="display-score">Score: 0</span>
+                </div>
+                <div class="timer-container">
+                    <div class="timer-label">TIME REMAINING</div>
+                    <div id="timer-clock">00</div>
+                </div>
+            </header>
+
+            <div class="quiz-layout">
+                <!-- Points Ladder -->
+                <aside class="ladder">
+                    <div class="ladder-item" data-level="5">1,600</div>
+                    <div class="ladder-item" data-level="4">800</div>
+                    <div class="ladder-item" data-level="3">400</div>
+                    <div class="ladder-item" data-level="2">200</div>
+                    <div class="ladder-item" data-level="1">100</div>
+                </aside>
+
+                <!-- Main Quiz Area -->
+                <div class="quiz-main">
+                    <!-- Ready Overlay -->
+                    <div id="ready-overlay" class="overlay">
+                        <button id="btn-ready" class="cinematic-btn">ARE YOU READY?</button>
+                    </div>
+
+                    <div class="question-panel">
+                        <div id="question-text">Loading mathematical challenge...</div>
+                    </div>
+                    <div class="answers-grid">
+                        <button class="answer-btn" data-option="A">
+                            <span class="opt-label">A:</span> <span class="opt-text">Option A</span>
+                        </button>
+                        <button class="answer-btn" data-option="B">
+                            <span class="opt-label">B:</span> <span class="opt-text">Option B</span>
+                        </button>
+                        <button class="answer-btn" data-option="C">
+                            <span class="opt-label">C:</span> <span class="opt-text">Option C</span>
+                        </button>
+                        <button class="answer-btn" data-option="D">
+                            <span class="opt-label">D:</span> <span class="opt-text">Option D</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Host Control Bar (Hidden from teams, visible to host) -->
+            <footer class="host-controls">
+                <div class="lifeline-group">
+                    <button id="ll-5050" class="ll-btn">50:50</button>
+                    <button id="ll-audience" class="ll-btn">Audience</button>
+                </div>
+                <div class="action-group">
+                    <button id="btn-reveal" class="action-btn reveal">LOCK IN ANSWER</button>
+                    <button id="btn-next" class="action-btn next">NEXT QUESTION</button>
+                    <button id="btn-prev" class="action-btn prev">PREVIOUS QUESTION</button>
+                    <button id="btn-bank" class="action-btn bank">BANK & STOP</button>
+                </div>
+
+
+                <div class="backup-group">
+                    <button id="btn-backup" class="action-btn backup">SWITCH TO SET-B</button>
+                </div>
+
+            </footer>
+        </section>
+
+        <!-- Screen 3: Results -->
+        <section id="screen-results" class="screen">
+            <div class="results-card">
+                <h2 id="results-team-name">Quiz Complete</h2>
+                <div class="final-score-label">FINAL SCORE</div>
+                <div id="final-score-value">0</div>
+
+                <div id="performance-summary" class="performance-summary">
+                    <!-- Summary table will be injected here -->
+                </div>
+
+                <button id="btn-restart" class="cinematic-btn">NEXT TEAM</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="js/scene.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>

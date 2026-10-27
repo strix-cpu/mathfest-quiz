@@ -10,12 +10,14 @@ let gameState = {
     timerInterval: null,
     timeLeft: 0,
     lifelinesUsed: 0,
-    setA: [], // Original Questions
-    setB: [], // Backup Questions
-    activeQuestions: [], // The set currently being used
-    performance: [], // Stores { qNum: 1, timeTaken: "45s", lifeline: "50:50" | null, answered: true, choice: 'A' }
+    setA: [],
+    setB: [],
+    activeQuestions: [],
+    performance: [],
     startTime: null,
-    currentSet: 'A' // 'A' or 'B'
+    currentSet: 'A',
+    pollInterval: null,
+    lockInInterval: null
 };
 
 // DOM Elements
@@ -36,7 +38,11 @@ const elements = {
     finalScore: document.getElementById('final-score-value'),
     resultsTeamName: document.getElementById('results-team-name'),
     perfSummary: document.getElementById('performance-summary'),
-    readyOverlay: document.getElementById('ready-overlay')
+    readyOverlay: document.getElementById('ready-overlay'),
+    audienceOverlay: document.getElementById('audience-overlay'),
+    audienceTimer: document.getElementById('audience-timer'),
+    lockInOverlay: document.getElementById('lock-in-overlay'),
+    lockInTimer: document.getElementById('lock-in-timer')
 };
 
 // Init
@@ -46,7 +52,7 @@ async function initGame() {
         const data = await response.json();
         gameState.setA = data.questions;
         gameState.setB = data.backups;
-        gameState.activeQuestions = [...gameState.setA]; // Default to Set A
+        gameState.activeQuestions = [...gameState.setA];
     } catch (e) {
         console.error("Failed to load questions:", e);
     }
@@ -62,13 +68,12 @@ async function initGame() {
     document.getElementById('btn-bank').onclick = bankAndStop;
     document.getElementById('btn-restart').onclick = () => location.reload();
     document.getElementById('btn-backup').onclick = toggleSet;
+    document.getElementById('btn-stop-poll').onclick = stopPoll;
 
-    // Team Answer Selection
     elements.answerBtns.forEach(btn => {
         btn.onclick = () => selectAnswer(btn);
     });
 
-    // Ladder Selection
     elements.ladderItems.forEach(item => {
         item.onclick = () => {
             const level = parseInt(item.dataset.level);
@@ -76,7 +81,6 @@ async function initGame() {
         };
     });
 
-    // Lifeline Setup
     document.getElementById('ll-5050').onclick = () => applyLifeline('50:50');
     document.getElementById('ll-audience').onclick = () => applyLifeline('Audience');
 }
@@ -89,21 +93,16 @@ function startQuiz() {
     }
     gameState.teamName = name;
     elements.displayTeam.innerText = gameState.teamName;
-
     switchScreen('quiz');
     loadQuestion();
 }
 
 function loadQuestion() {
     clearInterval(gameState.timerInterval);
-
     const q = gameState.activeQuestions[gameState.currentQuestionIdx];
     elements.questionText.innerText = q.prompt;
-
-    // Check if this question was already answered
     const perf = gameState.performance[gameState.currentQuestionIdx];
     const wasAnswered = perf && perf.answered;
-
     gameState.isAnswerLocked = wasAnswered;
 
     if (!wasAnswered) {
@@ -112,28 +111,19 @@ function loadQuestion() {
         elements.readyOverlay.classList.add('hidden');
     }
 
-    // Setup Answer Buttons
     elements.answerBtns.forEach(btn => {
         const opt = btn.dataset.option;
         btn.classList.remove('selected', 'correct', 'incorrect');
         btn.style.visibility = 'visible';
         btn.querySelector('.opt-text').innerText = q.choices[opt];
-
         if (wasAnswered) {
-            // Show the correct answer
-            if (opt === q.correct) {
-                btn.classList.add('correct');
-            }
-            // Show the team's choice from performance log
+            if (opt === q.correct) btn.classList.add('correct');
             if (perf && perf.choice === opt) {
                 btn.classList.add('selected');
-                if (opt !== q.correct) {
-                    btn.classList.add('incorrect');
-                }
+                if (opt !== q.correct) btn.classList.add('incorrect');
             }
         }
     });
-
     updateLadder();
 }
 
@@ -141,11 +131,9 @@ function startTimer(seconds) {
     gameState.timeLeft = seconds;
     elements.timerClock.innerText = gameState.timeLeft;
     gameState.startTime = Date.now();
-
     gameState.timerInterval = setInterval(() => {
         gameState.timeLeft--;
         elements.timerClock.innerText = gameState.timeLeft;
-
         if (gameState.timeLeft <= 0) {
             clearInterval(gameState.timerInterval);
             lockAnswer();
@@ -168,18 +156,14 @@ function revealAnswer() {
     if (!gameState.isAnswerLocked) {
         lockAnswer();
     }
-
     const q = gameState.activeQuestions[gameState.currentQuestionIdx];
     const correctOpt = q.correct;
     const selectedBtn = document.querySelector('.answer-btn.selected');
     const choice = selectedBtn ? selectedBtn.dataset.option : null;
 
     elements.answerBtns.forEach(btn => {
-        if (btn.dataset.option === correctOpt) {
-            btn.classList.add('correct');
-        } else if (btn === selectedBtn) {
-            btn.classList.add('incorrect');
-        }
+        if (btn.dataset.option === correctOpt) btn.classList.add('correct');
+        else if (btn === selectedBtn) btn.classList.add('incorrect');
     });
 
     if (selectedBtn && selectedBtn.dataset.option === correctOpt) {
@@ -188,11 +172,9 @@ function revealAnswer() {
     }
 
     const timeSpent = q.time - gameState.timeLeft;
-
     if (!gameState.performance[gameState.currentQuestionIdx]) {
         gameState.performance[gameState.currentQuestionIdx] = { qNum: gameState.currentQuestionIdx + 1 };
     }
-
     gameState.performance[gameState.currentQuestionIdx].timeTaken = timeSpent + "s";
     gameState.performance[gameState.currentQuestionIdx].answered = true;
     gameState.performance[gameState.currentQuestionIdx].choice = choice;
@@ -221,7 +203,6 @@ function jumpToQuestion(idx) {
 
 function toggleSet() {
     const idx = gameState.currentQuestionIdx;
-
     if (gameState.currentSet === 'A') {
         gameState.activeQuestions[idx] = gameState.setB[idx];
         gameState.currentSet = 'B';
@@ -229,8 +210,6 @@ function toggleSet() {
         gameState.activeQuestions[idx] = gameState.setA[idx];
         gameState.currentSet = 'A';
     }
-
-    // Reset performance for this question when switching sets
     gameState.performance[idx] = { qNum: idx + 1, answered: false };
     loadQuestion();
 }
@@ -240,9 +219,7 @@ function applyLifeline(type) {
         alert("Lifeline already used!");
         return;
     }
-
     gameState.lifelinesUsed++;
-
     if (!gameState.performance[gameState.currentQuestionIdx]) {
         gameState.performance[gameState.currentQuestionIdx] = { qNum: gameState.currentQuestionIdx + 1 };
     }
@@ -258,9 +235,50 @@ function applyLifeline(type) {
                 removed++;
             }
         });
-    } else {
-        alert("Audience Vote: 70% suggest Option " + gameState.activeQuestions[gameState.currentQuestionIdx].correct);
+    } else if (type === 'Audience') {
+        startAudiencePoll();
     }
+}
+
+function startAudiencePoll() {
+    elements.audienceOverlay.classList.remove('hidden');
+    let pollTime = 120; // 2 minutes
+
+    elements.audienceTimer.innerText = "02:00";
+
+    gameState.pollInterval = setInterval(() => {
+        pollTime--;
+        const mins = Math.floor(pollTime / 60);
+        const secs = pollTime % 60;
+        elements.audienceTimer.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        if (pollTime <= 0) {
+            stopPoll();
+        }
+    }, 1000);
+}
+
+function stopPoll() {
+    clearInterval(gameState.pollInterval);
+    elements.audienceOverlay.classList.add('hidden');
+    startFinalLockIn();
+}
+
+function startFinalLockIn() {
+    elements.lockInOverlay.classList.remove('hidden');
+    let lockTime = 10;
+    elements.lockInTimer.innerText = lockTime;
+
+    gameState.lockInInterval = setInterval(() => {
+        lockTime--;
+        elements.lockInTimer.innerText = lockTime;
+
+        if (lockTime <= 0) {
+            clearInterval(gameState.lockInInterval);
+            elements.lockInOverlay.classList.add('hidden');
+            lockAnswer(); // Lock the answers after 10s
+        }
+    }, 1000);
 }
 
 function bankAndStop() {
@@ -271,7 +289,6 @@ function finishQuiz() {
     clearInterval(gameState.timerInterval);
     elements.resultsTeamName.innerText = `${gameState.teamName}'s Result`;
     elements.finalScore.innerText = gameState.score;
-
     let html = `
         <table class="summary-table">
             <thead>
@@ -283,18 +300,10 @@ function finishQuiz() {
             </thead>
             <tbody>
     `;
-
     for (let i = 0; i < gameState.activeQuestions.length; i++) {
         const perf = gameState.performance[i] || { timeTaken: "N/A", lifeline: "None" };
-        html += `
-            <tr>
-                <td>${i + 1}</td>
-                <td>${perf.timeTaken || "N/A"}</td>
-                <td>${perf.lifeline || "None"}</td>
-            </tr>
-        `;
+        html += `<tr><td>${i + 1}</td><td>${perf.timeTaken || "N/A"}</td><td>${perf.lifeline || "None"}</td></tr>`;
     }
-
     html += `</tbody></table>`;
     elements.perfSummary.innerHTML = html;
     switchScreen('results');
@@ -304,11 +313,8 @@ function updateLadder() {
     elements.ladderItems.forEach(item => {
         const level = parseInt(item.dataset.level);
         item.classList.remove('active', 'completed');
-        if (level === gameState.currentQuestionIdx + 1) {
-            item.classList.add('active');
-        } else if (level < gameState.currentQuestionIdx + 1) {
-            item.classList.add('completed');
-        }
+        if (level === gameState.currentQuestionIdx + 1) item.classList.add('active');
+        else if (level < gameState.currentQuestionIdx + 1) item.classList.add('completed');
     });
 }
 

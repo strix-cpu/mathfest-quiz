@@ -15,9 +15,7 @@ let gameState = {
     activeQuestions: [],
     performance: [],
     startTime: null,
-    currentSet: 'A',
-    pollInterval: null,
-    lockInInterval: null
+    currentSet: 'A'
 };
 
 // DOM Elements
@@ -38,11 +36,7 @@ const elements = {
     finalScore: document.getElementById('final-score-value'),
     resultsTeamName: document.getElementById('results-team-name'),
     perfSummary: document.getElementById('performance-summary'),
-    readyOverlay: document.getElementById('ready-overlay'),
-    audienceOverlay: document.getElementById('audience-overlay'),
-    audienceTimer: document.getElementById('audience-timer'),
-    lockInOverlay: document.getElementById('lock-in-overlay'),
-    lockInTimer: document.getElementById('lock-in-timer')
+    readyOverlay: document.getElementById('ready-overlay')
 };
 
 // Init
@@ -68,7 +62,6 @@ async function initGame() {
     document.getElementById('btn-bank').onclick = bankAndStop;
     document.getElementById('btn-restart').onclick = () => location.reload();
     document.getElementById('btn-backup').onclick = toggleSet;
-    document.getElementById('btn-stop-poll').onclick = stopPoll;
 
     elements.answerBtns.forEach(btn => {
         btn.onclick = () => selectAnswer(btn);
@@ -82,7 +75,7 @@ async function initGame() {
     });
 
     document.getElementById('ll-5050').onclick = () => applyLifeline('50:50');
-    document.getElementById('ll-audience').onclick = () => applyLifeline('Audience');
+    // Audience lifeline is now removed as requested
 }
 
 function startQuiz() {
@@ -215,6 +208,8 @@ function toggleSet() {
 }
 
 function applyLifeline(type) {
+    if (type !== '50:50') return; // Remove Audience lifeline logic
+
     if (gameState.lifelinesUsed >= 1) {
         alert("Lifeline already used!");
         return;
@@ -225,60 +220,15 @@ function applyLifeline(type) {
     }
     gameState.performance[gameState.currentQuestionIdx].lifeline = type;
 
-    if (type === '50:50') {
-        const q = gameState.activeQuestions[gameState.currentQuestionIdx];
-        const correct = q.correct;
-        let removed = 0;
-        elements.answerBtns.forEach(btn => {
-            if (btn.dataset.option !== correct && removed < 2) {
-                btn.style.visibility = 'hidden';
-                removed++;
-            }
-        });
-    } else if (type === 'Audience') {
-        startAudiencePoll();
-    }
-}
-
-function startAudiencePoll() {
-    elements.audienceOverlay.classList.remove('hidden');
-    let pollTime = 120; // 2 minutes
-
-    elements.audienceTimer.innerText = "02:00";
-
-    gameState.pollInterval = setInterval(() => {
-        pollTime--;
-        const mins = Math.floor(pollTime / 60);
-        const secs = pollTime % 60;
-        elements.audienceTimer.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
-        if (pollTime <= 0) {
-            stopPoll();
+    const q = gameState.activeQuestions[gameState.currentQuestionIdx];
+    const correct = q.correct;
+    let removed = 0;
+    elements.answerBtns.forEach(btn => {
+        if (btn.dataset.option !== correct && removed < 2) {
+            btn.style.visibility = 'hidden';
+            removed++;
         }
-    }, 1000);
-}
-
-function stopPoll() {
-    clearInterval(gameState.pollInterval);
-    elements.audienceOverlay.classList.add('hidden');
-    startFinalLockIn();
-}
-
-function startFinalLockIn() {
-    elements.lockInOverlay.classList.remove('hidden');
-    let lockTime = 10;
-    elements.lockInTimer.innerText = lockTime;
-
-    gameState.lockInInterval = setInterval(() => {
-        lockTime--;
-        elements.lockInTimer.innerText = lockTime;
-
-        if (lockTime <= 0) {
-            clearInterval(gameState.lockInInterval);
-            elements.lockInOverlay.classList.add('hidden');
-            lockAnswer(); // Lock the answers after 10s
-        }
-    }, 1000);
+    });
 }
 
 function bankAndStop() {

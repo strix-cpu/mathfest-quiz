@@ -407,11 +407,17 @@ body {
     align-items: center;
     z-index: 100;
     transition: opacity 0.5s ease;
+    pointer-events: none; /* CRITICAL: Allow clicks to pass through to the answer buttons below */
 }
 
 .overlay.hidden {
     opacity: 0;
     pointer-events: none;
+}
+
+/* Re-enable clicks ONLY for the elements inside the overlay card itself */
+.audience-card, .lock-in-card, .setup-card, .overlay button {
+    pointer-events: auto !important;
 }
 
 .audience-card, .lock-in-card {

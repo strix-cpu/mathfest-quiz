@@ -346,21 +346,27 @@ body {
     text-shadow: 0 0 20px var(--accent-gold);
 }
 
-/* Overlay styles for special events */
 .overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.4); /* Reduced opacity for visibility */
-    backdrop-filter: blur(2px); /* Reduced blur for visibility */
+    background: rgba(0,0,0,0.9); /* Back to darker background for "Ready" and "Poll" */
+    backdrop-filter: blur(10px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 100;
     transition: opacity 0.5s ease;
-    pointer-events: none; /* CRITICAL: Allow clicks to pass through to buttons below */
+    pointer-events: auto; /* Re-enable by default to block clicks during setup/poll */
+}
+
+/* Special case for the Lock-In overlay only */
+#lock-in-overlay {
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+    pointer-events: none; /* Only the lock-in phase allows clicking through */
 }
 
 .overlay.hidden {
@@ -368,7 +374,7 @@ body {
     pointer-events: none;
 }
 
-/* Re-enable clicks ONLY for the interactive parts of the overlay */
+/* Re-enable clicks for the content inside any overlay */
 .audience-card, .lock-in-card, .setup-card, .overlay button {
     pointer-events: auto !important;
 }

@@ -145,6 +145,10 @@ body {
 
 .timer-container {
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
 }
 
 .timer-label {
@@ -158,7 +162,24 @@ body {
     font-weight: bold;
     font-family: 'Courier New', Courier, monospace;
     color: var(--accent-gold);
-    text-shadow: 0 0 10px var(--accent-gold);
+    text-shadow: 0, 0, 10px var(--accent-gold);
+}
+
+#btn-unpause-timer {
+    background: var(--accent-gold);
+    color: black;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none; /* Hidden by default */
+    transition: 0.3s;
+}
+
+#btn-unpause-timer:hover {
+    background: white;
+    box-shadow: 0 0 10px var(--accent-gold);
 }
 
 .quiz-layout {
